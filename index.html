@@ -149,6 +149,8 @@ section.ex .sec-head h2::after{content:"Example";display:inline-block;vertical-a
 .cxitem:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .cxdetail{padding:16px 18px;overflow:auto;max-height:620px}
 .cxmeaning{font-size:14px;line-height:1.65;color:var(--ink);background:var(--panel2);border-left:3px solid var(--accent);border-radius:6px;padding:12px 14px}
+.cxmeaning.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cxmore{all:unset;cursor:pointer;color:var(--accent);font-size:13px;margin-top:6px;display:inline-block}
 .cxmeaning code{background:var(--panel);padding:1px 4px;border-radius:3px;font-size:12px}
 .cxtrap{margin-top:10px;font-size:13.5px;background:var(--red-soft);border-radius:8px;padding:10px 12px;color:var(--ink)}
 .cxtrap b{color:var(--red)}
@@ -272,13 +274,13 @@ section.ex .sec-head h2::after{content:"Example";display:inline-block;vertical-a
 
 <!-- ============ HOW TO RUN ============ -->
 <section id="how">
-  <div class="sec-head"><div class="sec-num">⏎</div><div>
+  <div class="sec-head"><div class="sec-num">·</div><div>
     <h2>How it works for you</h2>
-    <p>Three steps on your side. The rest runs on its own.</p>
+    <p>Two steps on your side. The run then goes on its own, with no further input.</p>
   </div></div>
-  <div class="steps3">
+  <div class="steps3" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
     <div class="step3"><div class="num">STEP 1</div><h4>Point to your data</h4>
-      <p>Give the path to one folder. Any mix of tables (CSV, delimited text) and documents (notes, a README) is fine. No need to describe it.</p>
+      <p>Name where each source sits: a folder of files, a cloud storage folder, or a table store. Tables and documents (notes, a README) can be mixed. No need to describe them.</p>
       <p class="muted" style="font-size:13px">In this example, every source is a file, including medical claims, which the brief places in a warehouse. The reader also supports a cloud storage folder (Google Cloud Storage) and Iceberg tables, read-only, where they sit. A Snowflake connection is not part of this example.</p>
       <div class="folder"><b>client-data/</b><br>&nbsp;&nbsp;members.csv<br>&nbsp;&nbsp;medical_claims_2013_2019.csv<br>&nbsp;&nbsp;medical_claims_2020_2025.csv<br>&nbsp;&nbsp;rx_claims.csv · lab_results.csv<br>&nbsp;&nbsp;provider_directory.txt · README.txt<br>&nbsp;&nbsp;clinical_notes/ <span class="muted">(118 files)</span></div>
     </div>
@@ -287,13 +289,9 @@ section.ex .sec-head h2::after{content:"Example";display:inline-block;vertical-a
       <div class="perm"><span class="chk">✓</span>Read files in <span class="mono">client-data/</span></div>
       <div class="perm"><span class="chk x">✕</span>Change or delete your files</div>
     </div>
-    <div class="step3"><div class="num">STEP 3</div><h4>Press Enter</h4>
-      <p>That starts the run. Press the key below to replay this example's run.</p>
-      <button class="enterkey" id="enterkey" aria-label="Replay the run">Enter ⏎</button>
-      <div class="runlog" id="runlog"><span class="muted">waiting…</span></div>
-    </div>
   </div>
-  <p class="muted" style="margin-top:12px">What you get back: the study answers, the figure registry with a trace for every number, a list of data issues, and the settings of each answer step, which a person on your side can read and approve.</p>
+  <p style="margin-top:14px"><b>Then the run goes on its own.</b> It learns the data, matches people, runs the answer steps and writes the results. In this example it took about 2 h 25 min.</p>
+  <p class="muted" style="margin-top:6px">What you get back: the study answers, the figure registry with a trace for every number, a list of data issues, and the settings of each answer step, which a person on your side can read and approve.</p>
 </section>
 
 <!-- ============ 1. DATASET ============ -->
@@ -328,7 +326,6 @@ section.ex .sec-head h2::after{content:"Example";display:inline-block;vertical-a
   <div class="stats">
     <div class="stat"><b>91 min</b><span>run time</span></div>
     <div class="stat"><b>$18.69</b><span>model cost</span></div>
-    <div class="stat"><b>2,202</b><span>model calls (597 large, 1,548 fast, 57 light)</span></div>
     <div class="stat"><b>13</b><span>data problems filed as failures or warnings</span></div>
   </div>
   <h3>What the board knows about this data</h3>
@@ -338,9 +335,8 @@ section.ex .sec-head h2::after{content:"Example";display:inline-block;vertical-a
     <div class="stat"><b>3 links rejected</b><span>shared IDs, but not parent and child</span></div>
     <div class="stat"><b>13 problems</b><span>filed with a proof query</span></div>
   </div>
-  <div class="grid2">
-    <div class="card" style="margin:0"><h4 style="margin:0 0 4px">What kind of columns</h4><p class="muted" style="margin:0 0 6px">The board sorts every column by its role. Hover a slice.</p><div class="chart" id="typedonut"></div></div>
-    <div class="card" style="margin:0"><h4 style="margin:0 0 4px">How the tables join</h4><p class="muted" style="margin:0 0 6px">A link is accepted only when every key in the child table is found in the parent. Hover a line.</p><div class="chart" id="linkmap"></div></div>
+  <div>
+        <div class="card" style="margin:0"><h4 style="margin:0 0 4px">How the tables join</h4><p class="muted" style="margin:0 0 6px">A link is accepted only when every key in the child table is found in the parent. Hover a line.</p><div class="chart" id="linkmap"></div></div>
   </div>
 
   <h3>Column explorer: the meaning of every column</h3>
@@ -581,17 +577,6 @@ const TYPE_LABEL={identifier:'ID',coded_concept:'code',temporal_marker:'date',cl
 const TYPE_COL={identifier:'--ink3',coded_concept:'--blue',temporal_marker:'--amber',classifier:'--accent',measurement:'--nexa',free_text:'--red',status:'--green',quantity:'--sorv'};
 const tcol=t=>css(TYPE_COL[t]||'--ink3');
 const md=s=>esc(s||'').replace(/`([^`]+)`/g,'<code>$1</code>');
-(function(){const el=document.getElementById('typedonut');const cnt=d3.rollups(BOARD.flatMap(t=>t.cols),v=>v.length,c=>c.t).sort((a,b)=>b[1]-a[1]);
- const w=Math.max(300,el.clientWidth),h=230,r=95,cx=Math.min(120,w*.35);
- const svg=d3.select(el).append('svg').attr('viewBox',`0 0 ${w} ${h}`).attr('width',w).attr('height',h);
- const arc=d3.arc().innerRadius(r*.58).outerRadius(r);
- svg.append('g').attr('transform',`translate(${cx},${h/2})`).selectAll('path').data(d3.pie().value(d=>d[1]).sort(null)(cnt)).join('path').attr('d',arc).attr('fill',d=>tcol(d.data[0])).attr('stroke',css('--panel')).attr('stroke-width',2)
-  .on('mousemove',(e,d)=>{const names=BOARD.flatMap(t=>t.cols.filter(c=>c.t===d.data[0]).map(c=>c.n));showTip(e,`<b>${TYPE_LABEL[d.data[0]]}</b> · ${d.data[1]} columns<br>${esc(names.join(', '))}`)}).on('mouseleave',hideTip);
- svg.append('text').attr('x',cx).attr('y',h/2-2).attr('text-anchor','middle').style('font','600 26px "IBM Plex Mono"').style('fill',css('--ink')).text('39');
- svg.append('text').attr('x',cx).attr('y',h/2+16).attr('text-anchor','middle').style('font-size','11px').text('columns');
- const lg=svg.append('g').attr('transform',`translate(${cx+r+24},${h/2-cnt.length*11})`);
- cnt.forEach((d,i)=>{lg.append('rect').attr('y',i*22).attr('width',11).attr('height',11).attr('rx',2).attr('fill',tcol(d[0]));lg.append('text').attr('x',18).attr('y',i*22+10).style('font-size','12.5px').text(`${TYPE_LABEL[d[0]]}  ${d[1]}`)});
-})();
 (function(){const el=document.getElementById('linkmap');const w=Math.max(300,el.clientWidth),h=250;
  const P={MEMBERS:[w/2,40],LAB:[w*.14,200],MED:[w*.38,215],RX:[w*.62,215],NOTES:[w*.86,200]};
  const NM={MEMBERS:'MEMBERS',LAB:'LAB_RESULTS',MED:'MEDICAL_CLAIMS',RX:'RX_CLAIMS',NOTES:'CLINICAL_NOTES'};
@@ -610,18 +595,12 @@ const md=s=>esc(s||'').replace(/`([^`]+)`/g,'<code>$1</code>');
 (function(){const tabsEl=document.getElementById('cxtabs'),list=document.getElementById('cxlist'),det=document.getElementById('cxdetail');
  const tname=t=>t==='MEDICAL_CLAIMS_2020_2025'?'MEDICAL_CLAIMS':t;
  function showCol(t,c){[...list.children].forEach(x=>x.classList.toggle('on',x.dataset.n===c.n));
-  const pct=v=>c.of?d3.format('.1%')(v/c.of):'';
-  const chart=c.vl.length&&!['identifier','free_text','temporal_marker'].includes(c.t);
   det.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:6px"><b class="mono" style="font-size:16px;margin-right:6px">${esc(c.n)}</b><span class="pill" style="background:${tcol(c.t)};color:var(--panel);border-color:transparent">${TYPE_LABEL[c.t]||c.t}</span>${c.d?`<span class="pill">${esc(c.d)}</span>`:''}${c.u?`<span class="pill">unit: ${esc(c.u)}</span>`:''}${c.cf!=null?`<span class="pill ok">confidence ${c.cf}</span>`:''}${c.dc!=null?`<span class="pill">${fmt(c.dc)} distinct</span>`:''}</div>
-  <div class="muted" style="margin-bottom:4px">What the board wrote</div><div class="cxmeaning">${md(c.m)}</div>
+  <div class="muted" style="margin-bottom:4px">What the board wrote</div><div class="cxmeaning clamp" id="cxm">${md(c.m)}</div><button class="cxmore" id="cxmore">Show full text</button>
   ${c.tr.length?`<div class="cxtrap"><b>⚑ Problem filed</b>${c.tr.map(s=>`<p style="margin:4px 0 0">${md(s)}</p>`).join('')}</div>`:''}
-  ${chart?`<div class="muted" style="margin:12px 0 4px">Most common values${c.of?` (of ${fmt(c.of)} rows)`:''}</div><div id="cxbars"></div>`:(c.ex.length?`<div class="muted" style="margin:12px 0 4px">Real example values</div>${c.ex.map(x=>`<span class="pill mono">${esc(String(x).slice(0,60))}</span>`).join('')}`:'')}`;
-  if(chart){const el=document.getElementById('cxbars'),w=Math.max(260,el.clientWidth),bh=18,lm=Math.min(150,w*.42),hh=c.vl.length*(bh+5);const mx=d3.max(c.vl,v=>v[1]);
-   const x=d3.scaleLinear().domain([0,mx]).range([0,w-lm-80]);const svg=d3.select(el).append('svg').attr('viewBox',`0 0 ${w} ${hh}`).attr('width',w).attr('height',hh);
-   const g=svg.selectAll('g').data(c.vl).join('g').attr('transform',(d,i)=>`translate(0,${i*(bh+5)})`);
-   g.append('text').attr('x',lm-6).attr('y',bh/2+4).attr('text-anchor','end').attr('class','mono').style('font-size','11px').text(d=>String(d[0]).length>22?String(d[0]).slice(0,21)+'…':d[0]);
-   g.append('rect').attr('x',lm).attr('height',bh).attr('rx',3).attr('width',d=>Math.max(2,x(d[1]))).attr('fill',tcol(c.t)).attr('opacity',.85);
-   g.append('text').attr('x',d=>lm+Math.max(2,x(d[1]))+5).attr('y',bh/2+4).attr('class','mono').style('font-size','11px').text(d=>`${fmt(d[1])} ${pct(d[1])}`);}
+`;
+  const mEl=document.getElementById('cxm'),mb=document.getElementById('cxmore');
+  if(mEl.scrollHeight<=mEl.clientHeight+2)mb.remove();else mb.onclick=()=>{const o=mEl.classList.toggle('clamp');mb.textContent=o?'Show full text':'Show less'};
  }
  function showTable(t){list.innerHTML=`<div class="cxhead"><b>${tname(t.t)}</b>${t.t==='MEDICAL_CLAIMS_2020_2025'?'<div class="muted">The 2013–2019 file has the same columns.</div>':''}<p style="margin:6px 0 0;font-size:13px">${md(t.p)}</p>${t.g?`<p class="muted" style="margin:6px 0 0">${md(t.g)}</p>`:''}</div>`;
   t.cols.forEach(c=>{const b=document.createElement('button');b.className='cxitem';b.dataset.n=c.n;b.innerHTML=`<span><i style="background:${tcol(c.t)}"></i>${esc(c.n)}</span><span class="muted">${c.tr.length?'<span style="color:var(--red)">⚑</span> ':''}${TYPE_LABEL[c.t]||c.t}</span>`;b.onclick=()=>showCol(t,c);list.appendChild(b)});
@@ -845,7 +824,7 @@ tabs(document.getElementById('scorefilter'),[`All (${nOk} of ${SCORE.length} mat
   svg.append('rect').attr('class','glow').attr('x',c.x-8).attr('y',c.y-8).attr('width',c.w+16).attr('height',c.h+16).attr('rx',22).attr('fill',css('--accent-soft'));
   svg.append('rect').attr('x',c.x).attr('y',c.y).attr('width',c.w).attr('height',c.h).attr('rx',16).attr('fill',css('--panel')).attr('stroke',css('--accent')).attr('stroke-width',2.5);
   svg.append('text').attr('x',c.x+c.w/2).attr('y',c.y+32).attr('text-anchor','middle').style('font','600 19px "IBM Plex Sans"').style('fill',css('--accent')).text('ENRICH BOARD');
-  svg.append('text').attr('x',c.x+c.w/2).attr('y',c.y+52).attr('text-anchor','middle').style('font-size','12px').style('fill',css('--ink3')).text('91 min · 2,202 model calls');
+  svg.append('text').attr('x',c.x+c.w/2).attr('y',c.y+52).attr('text-anchor','middle').style('font-size','12px').style('fill',css('--ink3')).text('91 min · $18.69');
   const lh=(c.h-80)/LAY.length;
   LAY.forEach((l,i)=>{const d={x:c.x+14,y:c.y+68+i*lh,w:c.w-28,h:lh-10};
    const g=svg.append('g').attr('class','hubnode').attr('tabindex',0);
@@ -859,14 +838,6 @@ tabs(document.getElementById('scorefilter'),[`All (${nOk} of ${SCORE.length} mat
  draw();let t;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(draw,150)});
 })();
 
-/* ---------- run replay ---------- */
-(function(){const k=document.getElementById('enterkey'),log=document.getElementById('runlog');let timers=[];
- const L=[['input prep','7 tables, 118 notes, 1 document'],['enrich','board written · 91 min · $18.69'],['trap hunt','13 problems filed'],['who is who','1,231 IDs → 1,226 people · 17.5 min · $3.68'],['answers','steps run, settings checked · 36.6 min · $2.22'],['done','Q1–Q5, traced figures, data issues']];
- function run(){timers.forEach(clearTimeout);timers=[];log.innerHTML='';k.classList.add('press');setTimeout(()=>k.classList.remove('press'),150);
-  L.forEach((l,i)=>timers.push(setTimeout(()=>{log.insertAdjacentHTML('beforeend',`<div><span class="d">✓</span> ${l[0].padEnd(12,' ').replace(/ /g,'&nbsp;')} ${esc(l[1])}</div>`)},450*(i+1))));}
- k.onclick=run;
- addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement===document.body){const r=k.getBoundingClientRect();if(r.top<innerHeight&&r.bottom>0)run()}});
-})();
 
 /* ---------- face value vs board ---------- */
 (function(){const el=document.getElementById('vs');
