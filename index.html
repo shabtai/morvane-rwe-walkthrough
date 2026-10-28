@@ -203,13 +203,15 @@ section.ex .sec-head h2::after{content:"Example";display:inline-block;vertical-a
   <div class="eyebrow">Rare disease RWE · worked example</div>
   <h1>From raw claims to a traced study answer</h1>
   <p class="lead">This page walks through one full run of our pipeline on a rare-disease dataset. It follows the case brief step by step: what the data looks like, how we learn its meaning, how we decide who is who, how the study is run, and what came out. Every number below comes from that run, and you can click into most of them.</p>
-  <div class="notice"><b>About the data.</b> This is the <b>Morvane v2 rehearsal dataset</b>: synthetic data built to the exact shape of the case brief (same tables, same five questions, same eleven trap types). The disease, gene and drugs have new names so that nothing could be copied from the brief. It has a hidden answer key, which we only used at the end to score the run.</div>
+  <div class="notice"><b>About the data.</b> This is the <b>Morvane v2 rehearsal dataset</b>: synthetic data built to the exact shape of the case brief (same tables, same five questions, same eleven trap types). The disease, gene and drugs have new names so that nothing could be copied from the brief. It has a hidden answer key. The run never had access to it; we used it only at the end, to score the run.</div>
+  <div class="notice"><b>Size.</b> This example has 1,231 member IDs and 28 patients. The case describes about 2 million members and about 400 patients. The time and cost below are for this example only, and do not scale with row count in a simple way. Most model work reads columns, sample values, codes and notes. The rows themselves are counted by the database, not read by the model. At full size, the main growth comes from more notes to read, more distinct codes to look up, more possible same-person pairs to check, and longer database queries.</div>
   <div class="stats">
     <div class="stat"><b>~2 h 25 min</b><span>total machine time, end to end</span></div>
     <div class="stat"><b>$24.59</b><span>total model cost</span></div>
     <div class="stat"><b>28 / 28</b><span>true patients found, 0 false</span></div>
     <div class="stat"><b>44</b><span>figures, each traced to a rule and a query</span></div>
   </div>
+  <p class="muted" style="margin:6px 0 0"><b>Models used:</b> Google Gemini 4 Argon (large model: meanings, links, who is who, answer-step checks), Gemini 3.8 Flash (fast model), Gemini 3.1 Flash-Lite (light model), and Jev 1.14 (a small classifier). <b>Use Case 2</b>, the payer dossier draft, is the next step and is not part of this example. It will be written from the traced figures, so each number in the dossier keeps its link to its rule and query.</p>
 </header>
 
 <nav class="steps" aria-label="Steps"><div class="row" id="navrow">
@@ -277,6 +279,7 @@ section.ex .sec-head h2::after{content:"Example";display:inline-block;vertical-a
   <div class="steps3">
     <div class="step3"><div class="num">STEP 1</div><h4>Point to your data</h4>
       <p>Give the path to one folder. Any mix of tables (CSV, delimited text) and documents (notes, a README) is fine. No need to describe it.</p>
+      <p class="muted" style="font-size:13px">In this example, every source is a file, including medical claims, which the brief places in a warehouse. The reader also supports a cloud storage folder (Google Cloud Storage) and Iceberg tables, read-only, where they sit. A Snowflake connection is not part of this example.</p>
       <div class="folder"><b>client-data/</b><br>&nbsp;&nbsp;members.csv<br>&nbsp;&nbsp;medical_claims_2013_2019.csv<br>&nbsp;&nbsp;medical_claims_2020_2025.csv<br>&nbsp;&nbsp;rx_claims.csv · lab_results.csv<br>&nbsp;&nbsp;provider_directory.txt · README.txt<br>&nbsp;&nbsp;clinical_notes/ <span class="muted">(118 files)</span></div>
     </div>
     <div class="step3"><div class="num">STEP 2</div><h4>Give read permission</h4>
@@ -388,7 +391,7 @@ section.ex .sec-head h2::after{content:"Example";display:inline-block;vertical-a
       <tr><td><span class="pill info">Q1</span> Cohort</td><td>Case definition · confirming tests · how gene results are read · billing codes to compare against</td></tr>
       <tr><td><span class="pill info">Q2</span> Journey</td><td>Diagnosis date · related conditions · specialties · end specialty · minimum enrollment before the first sign</td></tr>
     </tbody></table></div>
-  <p class="muted" style="margin-top:10px">Example from this run: the AI found 5 confirmed patients held back by a setting that did not know some gene result labels. It fixed the setting, citing the lab rows, and the cohort went from 23 to 28.</p>
+  <p class="muted" style="margin-top:10px">Example from this run: the AI found 5 confirmed patients held back by a setting that did not know some gene result labels. It fixed the setting, and the cohort went from 23 to 28. <b>What triggered the change:</b> six lab rows named two NRB3 variants but no class label. Other lab rows in the same file label each of those four variants PATHOGENIC or Class 5, and four of the six results are also confirmed by a lab addendum note. The AI cited these rows in the setting's reason. It had no access to the answer key: its only tools read the settings, the figures and the study tables.</p>
 </div>
 <!-- ============ Q1 ============ -->
 <section id="q1" class="ex">
@@ -419,7 +422,7 @@ section.ex .sec-head h2::after{content:"Example";display:inline-block;vertical-a
     <div class="stat"><b>9</b><span>patients whose history starts too soon after enrollment (left-censored)</span></div>
   </div>
   <div class="card"><div class="chart" id="sankey"></div></div>
-  <p class="muted">The answer key says 1,222 days. Our 1,232 is inside the ±15 day tolerance. The gap comes from 6 patients whose diagnosis date was taken from the note date, which is a few days after the sample date. The fix is known: use the sample date the note reader already extracts.</p>
+  <p class="muted">The answer key says 1,222 days. Our 1,232 is inside the ±15 day tolerance. The gap comes from 6 patients whose diagnosis date was taken from the note date, which is a few days after the sample date. We kept this number as the run produced it, on purpose: it is within tolerance, and we show the run as it ran. The fix is known and is set for the next run: use the sample date the note reader already extracts.</p>
 </section>
 
 <!-- ============ Q3 ============ -->
@@ -477,7 +480,7 @@ section.ex .sec-head h2::after{content:"Example";display:inline-block;vertical-a
     <h2>Scorecard against the hidden answer key</h2>
     <p>After the run, we compared each number with the answer key. We show misses as plainly as hits.</p>
   </div></div>
-  <div class="outcome"><span>Outcome</span>31 of 33 numbers match the answer key or fall within its tolerance. One more differs because the key counts 2 Tessaly patients who have no NRB3 test result in any lab row or note.</div>
+  <div class="outcome"><span>Outcome</span>31 of 33 numbers match the answer key or fall within its tolerance. Two do not: <b>persons with an NRB3 result</b>, 56 vs 58, because the key counts 2 Tessaly patients who have no NRB3 test result in any lab row or note; and <b>median days to diagnosis for patients who are not left-censored</b>, 1,257 vs 1,239, 18 days off. The two Q4 visit rates were corrected after scoring: the first count, 8.05 after diagnosis, counted infusion drug lines as visits.</div>
   <div class="tabs" id="scorefilter"></div>
   <div class="card tscroll"><table id="scoretable"><thead><tr><th>Question</th><th>Measure</th><th class="num">Ours</th><th class="num">Key</th><th>Result</th></tr></thead><tbody></tbody></table></div>
   <div class="card"><h4 style="margin:0 0 6px">Time and cost</h4><div class="chart" id="costchart"></div></div>
@@ -533,7 +536,7 @@ const SOURCES=[
   board:'Extra finding, not on the planted list: 30 doctors listed as Internal Medicine bill as Family Medicine.'},
  {name:'clinical_notes/',big:'118',unit:'free-text notes',sub:'',cols:'PATIENT KEY, DATE OF SERVICE, DEPARTMENT, free text',
   traps:['9 patients are confirmed only in a note (T9).','"Morvane" appears in negation, family history, carrier and uncertain results.','Some notes record an ID change.','Note dates are the report date, after the sample date (T11).'],
-  board:'"Morvane" appears in 67 notes for 56 patients; only 23 notes confirm the disease.'},
+  board:'"Morvane" appears in 67 of 118 notes. Only 13 notes state a confirming gene result.'},
  {name:'README.txt',big:'1',unit:'data dictionary',sub:'',cols:'free text',
   traps:['Describes the files. Some statements in a README can be wrong, so each claim is checked against the data.'],
   board:'Read as a document, not as a table, by the input step.'}
@@ -738,7 +741,7 @@ function drawTL(i){const p=TL[i],el=document.getElementById('timeline');el.inner
 sel.onchange=()=>drawTL(+sel.value);drawTL(0);
 
 /* ---------- Q4 ---------- */
-const BURDEN=[{label:'Office visits',pre:4.63,post:2.36,kp:4.637,kpo:2.368,u:'per patient-year',f:d3.format('.2f'),note:'A visit is one doctor visit (E&M code 992xx, outpatient or ER) per person, day and doctor. Infusion drug lines and infusion charges are not visits. Before diagnosis: 574 visits in 123.8 patient-years. After: 382 visits in 161.7 patient-years.'},
+const BURDEN=[{label:'Office visits',pre:4.63,post:2.36,kp:4.637,kpo:2.368,u:'per patient-year',f:d3.format('.2f'),note:'A visit is one doctor visit (E&M code 992xx, outpatient or ER) per person, day and doctor. Infusion drug lines and infusion charges are not visits. Before diagnosis: 574 visits in 123.8 patient-years. After: 382 visits in 161.7 patient-years. Corrected after scoring: the run first counted every outpatient claim line, which gave 8.05 after diagnosis.'},
  {label:'Admissions',pre:0.105,post:0.124,kp:0.105,kpo:0.123,u:'per patient-year',f:d3.format('.3f'),note:'Both periods match the key.'},
  {label:'Paid amount',pre:3931.53,post:241057.98,kp:3942.59,kpo:240332.87,u:'$ per patient-year',f:d3.format('$,.0f'),note:'Both within 0.3% of the key. The jump after diagnosis is the cost of the drugs, mostly Nexalase infusions.'}];
 tabs(document.getElementById('burdentabs'),BURDEN,b=>{const el=document.getElementById('burden');el.innerHTML='';
@@ -768,7 +771,7 @@ const ISSUES=[
  ['Member IDs reissued','members + notes','5 people','Merged in step 3; 15 possible pairs held.','3 ID-change notes; 2 more pairs proven from claims and drugs.'],
  ['Morvane code not specific','medical claims','87 coded, 28 true','Cohort requires a gene result, not a code.','Code is right 32.2% of the time (positive predictive value). All 28 true cases have it.'],
  ['Tessaly code merged into Morvane code','medical claims','9 people','Cutover at 2020-10 detected; none enter the cohort.','Tessaly patients carry a pathogenic NRB5 result, not NRB3.'],
- ['"Morvane" in notes that are not cases','clinical notes','67 notes, 23 confirm','Note reader classifies each note.','Negation, family history, carrier and uncertain results.'],
+ ['"Morvane" in notes that are not cases','clinical notes','67 notes, 13 confirm','Note reader classifies each note.','Negation, family history, carrier and uncertain results.'],
  ['Lab and note dates shifted','lab_results, notes','958 persons','Per-person shift measured; claim date used for diagnosis where it exists.','96.3% of persons on one offset. 6 diagnosis dates still from the note date, so a few days late.'],
  ['Internal Medicine doctors billing as Family Medicine','provider_directory','30 doctors','Q2 shows specialty counts with and without the family doctor.','Not a planted trap. Found by the board.'],
  ['Note dates in MM/DD/YYYY','clinical notes','118 notes','Parsed as dates before sorting.','Sorting as text puts them in the wrong order.']];
@@ -785,13 +788,13 @@ const SCORE=[
  ['Q2','Median specialties, with family doctor','5','5','ok'],['Q2','Median specialties, without family doctor','4','4','ok'],['Q2','Left-censored patients','9','9','ok'],
  ['Q3','Treated / untreated','23 / 5','23 / 5','ok'],['Q3','First line: Feltrazin','18','18','ok'],['Q3','First line: Feltrazin + Sorvanib','2','2','ok'],['Q3','First line: Nexalase','3','3','ok'],
  ['Q3','Switches','5','5','ok'],['Q3','Stops','5','5','ok'],['Q3','Gap, not a stop','4','4','ok'],['Q3','Ever on Nexalase','8','8','ok'],
- ['Q4','Visits / PY before','4.63','4.637','close'],['Q4','Admissions / PY before','0.105','0.105','ok'],['Q4','Paid / PY before','$3,932','$3,943','close'],
- ['Q4','Visits / PY after','2.36','2.368','close'],['Q4','Admissions / PY after','0.124','0.123','ok'],['Q4','Paid / PY after','$241,058','$240,333','close'],
+ ['Q4','Visits / PY before','4.63','4.637','fixed'],['Q4','Admissions / PY before','0.105','0.105','ok'],['Q4','Paid / PY before','$3,932','$3,943','close'],
+ ['Q4','Visits / PY after','2.36','2.368','fixed'],['Q4','Admissions / PY after','0.124','0.123','ok'],['Q4','Paid / PY after','$241,058','$240,333','close'],
  ['Q5','Voided claims dropped','323','323','ok'],['Q5','Replacement rows','1,028','1,028','ok'],['Q5','Reversed fills','1,541','1,541','ok']];
-const SC={ok:['ok','match'],close:['ok','within tolerance'],warn:['warn','off by 18 days'],bad:['bad','miss'],keydiff:['warn','key counts 2 people with no NRB3 result in the files']};
+const SC={ok:['ok','match'],close:['ok','within tolerance'],warn:['warn','off by 18 days'],bad:['bad','miss'],fixed:['ok','within tolerance, corrected after scoring'],keydiff:['warn','key counts 2 people with no NRB3 result in the files']};
 const stb=document.querySelector('#scoretable tbody');
-function drawScore(f){stb.innerHTML=SCORE.filter(s=>f==='All'||(f==='Misses'?s[4]!=='ok'&&s[4]!=='close':s[0]===f)).map(s=>`<tr><td class="mono">${s[0]}</td><td>${esc(s[1])}</td><td class="num">${s[2]}</td><td class="num">${s[3]}</td><td><span class="pill ${SC[s[4]][0]}">${SC[s[4]][1]}</span></td></tr>`).join('')}
-const nOk=SCORE.filter(s=>s[4]==='ok'||s[4]==='close').length;
+function drawScore(f){stb.innerHTML=SCORE.filter(s=>f==='All'||(f==='Misses'?s[4]!=='ok'&&s[4]!=='close'&&s[4]!=='fixed':s[0]===f)).map(s=>`<tr><td class="mono">${s[0]}</td><td>${esc(s[1])}</td><td class="num">${s[2]}</td><td class="num">${s[3]}</td><td><span class="pill ${SC[s[4]][0]}">${SC[s[4]][1]}</span></td></tr>`).join('')}
+const nOk=SCORE.filter(s=>s[4]==='ok'||s[4]==='close'||s[4]==='fixed').length;
 tabs(document.getElementById('scorefilter'),[`All (${nOk} of ${SCORE.length} match)`,'Q1','Q2','Q3','Q4','Q5','Misses'],(f,i)=>drawScore(i===0?'All':f));
 
 /* ---------- cost chart ---------- */
@@ -868,7 +871,7 @@ tabs(document.getElementById('scorefilter'),[`All (${nOk} of ${SCORE.length} mat
 /* ---------- face value vs board ---------- */
 (function(){const el=document.getElementById('vs');
  const R=[['Who has Morvane disease?','87','people with the billing code','28','confirmed by a gene test (the code is right 32.2% of the time)'],
-  ['Notes that mention "Morvane"','56','patients','23','notes confirm it; the rest are negations, family history, carriers or uncertain results'],
+  ['Notes that mention "Morvane"','67','notes','13','notes state a confirming gene result; the rest are negations, family history, carriers or uncertain results'],
   ['Pharmacy fills that were paid','+1,541','reversed fills still show a positive amount','0','reversals flagged and left out of cost'],
   ['Claims that count as care','+323','voided claims look like visits','0','dropped: voided with no replacement'],
   ['Days of drug supply','1,097','fills claim 0 or 99 days','flagged','0 and 99 mean "unknown"'],
